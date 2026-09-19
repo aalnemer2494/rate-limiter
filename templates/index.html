@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Dashboard</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background-color: #121212; color: #ffffff; margin: 0; padding: 3rem; }
+        .card { background-color: #1e1e1e; border-radius: 8px; padding: 2rem; max-width: 600px; margin: 0 auto; border: 1px solid #333; }
+        h1 { font-size: 1.5rem; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 1rem; }
+        .metric { display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #333; }
+        .metric:last-child { border-bottom: none; }
+        .blocked { color: #ff5252; font-weight: bold; }
+        .safe { color: #4caf50; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Live Traffic Monitor</h1>
+        <div id="traffic-data">Loading metrics...</div>
+    </div>
+
+    <script>
+        async function fetchStats() {
+            const response = await fetch('/stats');
+            const data = await response.json();
+            const container = document.getElementById('traffic-data');
+            
+            if (Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="metric">No active connections.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            for (const [ip, requests] of Object.entries(data)) {
+                const count = requests.length;
+                const status = count >= 5 ? '<span class="blocked">BLOCKED</span>' : '<span class="safe">ACTIVE</span>';
+                container.innerHTML += `<div class="metric"><span>Target IP: ${ip}</span> <span>${count}/5 req - ${status}</span></div>`;
+            }
+        }
+        
+        fetchStats();
+        setInterval(fetchStats, 2000);
+    </script>
+</body>
+</html>
